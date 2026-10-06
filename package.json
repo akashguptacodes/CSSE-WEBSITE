@@ -1,0 +1,13 @@
+{
+  "name": "csse-website",
+  "version": "1.0.0",
+  "description": "Root package for deployment",
+  "scripts": {
+    "install": "cd server && npm install",
+    "build": "echo 'No build step'",
+    "start": "cd server && npm start"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
