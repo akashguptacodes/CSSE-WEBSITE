@@ -1,11 +1,14 @@
-const SibApiV3Sdk = require('sib-api-v3-sdk');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
-// Initialize Brevo (Sendinblue) API
-const defaultClient = SibApiV3Sdk.ApiClient.instance;
-const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
-
-const transactionalEmailsApi = new SibApiV3Sdk.TransactionalEmailsApi();
+// Configure the Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 /**
  * Send email verification OTP
@@ -19,49 +22,13 @@ const sendOTPEmail = async (email, otp) => {
     <html>
       <head>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-          }
-          .header {
-            background-color: #2563eb;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px 5px 0 0;
-          }
-          .content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 0 0 5px 5px;
-          }
-          .otp-box {
-            background-color: #f0f7ff;
-            border: 2px dashed #2563eb;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-            border-radius: 5px;
-          }
-          .otp-code {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2563eb;
-            letter-spacing: 5px;
-          }
-          .footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-          }
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }
+          .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: white; padding: 30px; border-radius: 0 0 5px 5px; }
+          .otp-box { background-color: #f0f7ff; border: 2px dashed #2563eb; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px; }
+          .otp-code { font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; }
+          .footer { margin-top: 20px; text-align: center; color: #666; font-size: 12px; }
         </style>
       </head>
       <body>
@@ -91,16 +58,14 @@ const sendOTPEmail = async (email, otp) => {
   `;
 
   try {
-    const sendSmtpEmail = {
-      sender: { email: 'akashgupta7484@gmail.com', name: 'CSSE - Technical Society' },
-      to: [{ email: email }],
+    const info = await transporter.sendMail({
+      from: `"CSSE - Technical Society" <${process.env.EMAIL_USER}>`,
+      to: email,
       subject: 'Email Verification - CSSE',
-      htmlContent: htmlContent
-    };
-
-    const result = await transactionalEmailsApi.sendTransacEmail(sendSmtpEmail);
-    console.log('✅ Email sent successfully via Brevo. Message ID:', result.messageId);
-    return { success: true, messageId: result.messageId };
+      html: htmlContent
+    });
+    console.log('✅ Email sent successfully via Nodemailer. Message ID:', info.messageId);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Email sending error:', error.message || error);
     throw new Error('Failed to send email');
@@ -119,55 +84,14 @@ const sendPasswordResetEmail = async (email, otp) => {
     <html>
       <head>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-          }
-          .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-          }
-          .header {
-            background-color: #dc2626;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px 5px 0 0;
-          }
-          .content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 0 0 5px 5px;
-          }
-          .otp-box {
-            background-color: #fef2f2;
-            border: 2px dashed #dc2626;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-            border-radius: 5px;
-          }
-          .otp-code {
-            font-size: 32px;
-            font-weight: bold;
-            color: #dc2626;
-            letter-spacing: 5px;
-          }
-          .warning {
-            background-color: #fff7ed;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            margin: 20px 0;
-          }
-          .footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-          }
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }
+          .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: white; padding: 30px; border-radius: 0 0 5px 5px; }
+          .otp-box { background-color: #fef2f2; border: 2px dashed #dc2626; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px; }
+          .otp-code { font-size: 32px; font-weight: bold; color: #dc2626; letter-spacing: 5px; }
+          .warning { background-color: #fff7ed; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+          .footer { margin-top: 20px; text-align: center; color: #666; font-size: 12px; }
         </style>
       </head>
       <body>
@@ -201,16 +125,14 @@ const sendPasswordResetEmail = async (email, otp) => {
   `;
 
   try {
-    const sendSmtpEmail = {
-      sender: { email: 'akashgupta7484@gmail.com', name: 'CSSE - Technical Society' },
-      to: [{ email: email }],
+    const info = await transporter.sendMail({
+      from: `"CSSE - Technical Society" <${process.env.EMAIL_USER}>`,
+      to: email,
       subject: 'Password Reset Request - CSSE',
-      htmlContent: htmlContent
-    };
-
-    const result = await transactionalEmailsApi.sendTransacEmail(sendSmtpEmail);
-    console.log('✅ Email sent successfully via Brevo. Message ID:', result.messageId);
-    return { success: true, messageId: result.messageId };
+      html: htmlContent
+    });
+    console.log('✅ Email sent successfully via Nodemailer. Message ID:', info.messageId);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Email sending error:', error.message || error);
     throw new Error('Failed to send email');
